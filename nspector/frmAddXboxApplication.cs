@@ -8,6 +8,9 @@ namespace nspector
 {
     public partial class frmAddXboxApplication : Form
     {
+
+        private Timer _debounceTimer;
+
         public class PackageItem
         {
             public string FamilyName { get; set; }
@@ -27,6 +30,10 @@ namespace nspector
             InitializeComponent();
             AcceptButton = btnOK;
             Shown += (s, e) => txtFilter.Focus();
+
+            _debounceTimer = new Timer();
+            _debounceTimer.Interval = 350;
+            _debounceTimer.Tick += DebounceTimer_Tick;
         }
 
         private void lstResults_DoubleClick(object sender, EventArgs e)
@@ -82,11 +89,21 @@ namespace nspector
 
         private void txtFilter_TextChanged(object sender, EventArgs e)
         {
+            // Restart the timer on every keystroke
+            _debounceTimer.Stop();
+            _debounceTimer.Start();
+        }
+
+        private void DebounceTimer_Tick(object sender, EventArgs e)
+        {
+            // Stop the timer to prevent repeated firing
+            _debounceTimer.Stop();
+
             string filter = txtFilter.Text.Trim();
 
             lstResults.Items.Clear();
-
             ListAppxPackages(filter);
+
             if (lstResults.Items.Count == 1)
                 lstResults.SelectedIndex = 0;
         }
