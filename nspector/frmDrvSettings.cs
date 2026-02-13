@@ -159,10 +159,10 @@ namespace nspector
                 RefreshApplicationsCombosAndText(applications);
 
                 foreach (var itm in from settingItem in _currentProfileSettingItems
-                         where !settingItem.IsSettingHidden
-                         let itm = lvSettings.Items.Add(CreateListViewItem(settingItem))
-                         where Debugger.IsAttached && !settingItem.IsApiExposed
-                         select itm)
+                                    where !settingItem.IsSettingHidden
+                                    let itm = lvSettings.Items.Add(CreateListViewItem(settingItem))
+                                    where Debugger.IsAttached && !settingItem.IsApiExposed
+                                    select itm)
                 {
                     itm.ForeColor = Color.LightCoral;
                 }
@@ -609,6 +609,7 @@ namespace nspector
             tsbBitValueEditor.Enabled = false;
             tsbDeleteProfile.Enabled = false;
             tsbAddApplication.Enabled = false;
+            tsbAddXboxApplication.Enabled = false;
             tssbRemoveApplication.Enabled = false;
 
             InitResetValueTooltip();
@@ -651,6 +652,7 @@ namespace nspector
                 cbProfiles.Text = GetBaseProfileName();
                 tsbDeleteProfile.Enabled = false;
                 tsbAddApplication.Enabled = false;
+                tsbAddXboxApplication.Enabled = false;
                 tssbRemoveApplication.Enabled = false;
             }
             else
@@ -658,6 +660,7 @@ namespace nspector
                 _CurrentProfile = cbProfiles.Text;
                 tsbDeleteProfile.Enabled = true;
                 tsbAddApplication.Enabled = true;
+                tsbAddXboxApplication.Enabled = true;
                 tssbRemoveApplication.Enabled = true;
             }
 
@@ -947,7 +950,11 @@ namespace nspector
 
         private void tsbAddApplication_Click(object sender, EventArgs e)
         {
-            var openDialog = new SaveFileDialog{};
+            var openDialog = new OpenFileDialog
+            {
+                DefaultExt = "*.exe",
+                Filter = "Application EXE Name|*.exe|Application Absolute Path|*.exe"
+            };
 
             if (openDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
@@ -955,37 +962,54 @@ namespace nspector
                 if (openDialog.FilterIndex == 2)
                     applicationName = openDialog.FileName;
 
-                try
-                {
-                    _drs.AddApplication(_CurrentProfile, applicationName);
-                }
-                catch (NvapiException ex)
-                {
-                    if (ex.Status == Native.NVAPI2.NvAPI_Status.NVAPI_EXECUTABLE_ALREADY_IN_USE ||
-                        ex.Status == Native.NVAPI2.NvAPI_Status.NVAPI_ERROR)
-                    {
-                        if (lblApplications.Text.ToUpper().IndexOf(" " + applicationName.ToUpper() + ",") != -1)
-                            MessageBox.Show("This application executable is already assigned to this profile!",
-                                "Error adding Application", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        else
-                        {
-                            string profileNames = _scanner.FindProfilesUsingApplication(applicationName);
-                            if (string.IsNullOrEmpty(profileNames))
-                                MessageBox.Show("This application executable might already be assigned to another profile!",
-                                    "Error adding Application", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            else
-                                MessageBox.Show(
-                                    "This application executable is already assigned to the following profiles: " +
-                                    profileNames, "Error adding Application", MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
-                        }
-                    }
-                    else
-                        throw;
-                }
+                AddApplication(applicationName);
             }
 
             RefreshCurrentProfile();
+        }
+
+        private void tsbAddXboxApplication_Click(object sender, EventArgs e)
+        {
+            var dialog = new frmAddXboxApplication();
+            if (dialog.ShowDialog() == DialogResult.OK)
+            {
+                string applicationName = dialog.SelectedPackage;
+                AddApplication(applicationName);
+            }
+
+            RefreshCurrentProfile();
+        }
+
+        private void AddApplication(string applicationName)
+        {
+            try
+            {
+                _drs.AddApplication(_CurrentProfile, applicationName);
+            }
+            catch (NvapiException ex)
+            {
+                if (ex.Status == Native.NVAPI2.NvAPI_Status.NVAPI_EXECUTABLE_ALREADY_IN_USE ||
+                    ex.Status == Native.NVAPI2.NvAPI_Status.NVAPI_ERROR)
+                {
+                    if (lblApplications.Text.ToUpper().IndexOf(" " + applicationName.ToUpper() + ",") != -1)
+                        MessageBox.Show("This application executable is already assigned to this profile!",
+                            "Error adding Application", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    else
+                    {
+                        string profileNames = _scanner.FindProfilesUsingApplication(applicationName);
+                        if (string.IsNullOrEmpty(profileNames))
+                            MessageBox.Show("This application executable might already be assigned to another profile!",
+                                "Error adding Application", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        else
+                            MessageBox.Show(
+                                "This application executable is already assigned to the following profiles: " +
+                                profileNames, "Error adding Application", MessageBoxButtons.OK,
+                                MessageBoxIcon.Error);
+                    }
+                }
+                else
+                    throw;
+            }
         }
 
         private void tssbRemoveApplication_DropDownItemClicked(object sender, ToolStripItemClickedEventArgs e)
@@ -1462,37 +1486,37 @@ namespace nspector
                 switch (match.Groups[1].Value)
                 {
                     case "Profile":
-                    {
-                        var profileName = match.Groups[2].Value;
-                        if (!games.ContainsKey(profileName.ToLower()))
                         {
-                            games.Add(profileName.ToLower(), new List<string>());
+                            var profileName = match.Groups[2].Value;
+                            if (!games.ContainsKey(profileName.ToLower()))
+                            {
+                                games.Add(profileName.ToLower(), new List<string>());
+                            }
+
+                            if (!upperCaseNames.ContainsKey(profileName.ToLower()))
+                            {
+                                upperCaseNames.Add(profileName.ToLower(), profileName);
+                            }
+
+                            lastGame = profileName.ToLower();
+
+                            break;
                         }
-
-                        if (!upperCaseNames.ContainsKey(profileName.ToLower()))
-                        {
-                            upperCaseNames.Add(profileName.ToLower(), profileName);
-                        }
-
-                        lastGame = profileName.ToLower();
-
-                        break;
-                    }
                     case "Executable":
-                    {
-                        var executableName = match.Groups[2].Value;
-                        if (!games[lastGame].Contains(executableName.ToLower()))
                         {
-                            games[lastGame].Add(executableName.ToLower());
-                        }
+                            var executableName = match.Groups[2].Value;
+                            if (!games[lastGame].Contains(executableName.ToLower()))
+                            {
+                                games[lastGame].Add(executableName.ToLower());
+                            }
 
-                        if (!upperCaseNames.ContainsKey(executableName.ToLower()))
-                        {
-                            upperCaseNames.Add(executableName.ToLower(), executableName);
-                        }
+                            if (!upperCaseNames.ContainsKey(executableName.ToLower()))
+                            {
+                                upperCaseNames.Add(executableName.ToLower(), executableName);
+                            }
 
-                        break;
-                    }
+                            break;
+                        }
                 }
             }
 
