@@ -947,11 +947,7 @@ namespace nspector
 
         private void tsbAddApplication_Click(object sender, EventArgs e)
         {
-            var openDialog = new OpenFileDialog
-            {
-                DefaultExt = "*.exe",
-                Filter = "Application EXE Name|*.exe|Application Absolute Path|*.exe"
-            };
+            var openDialog = new SaveFileDialog{};
 
             if (openDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
             {
