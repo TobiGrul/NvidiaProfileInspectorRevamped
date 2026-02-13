@@ -973,7 +973,7 @@ namespace nspector
             var dialog = new frmAddXboxApplication();
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                string applicationName = dialog.SelectedPackage;
+                string applicationName = dialog.SelectedPackage.FamilyName;
                 if (applicationName != null && applicationName != string.Empty)
                     AddApplication(applicationName);
             }

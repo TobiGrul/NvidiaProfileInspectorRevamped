@@ -8,7 +8,18 @@ namespace nspector
 {
     public partial class frmAddXboxApplication : Form
     {
-        public string SelectedPackage => lstResults.SelectedItem?.ToString();
+        public class PackageItem
+        {
+            public string FamilyName { get; set; }
+            public string DisplayName { get; set; }
+
+            public override string ToString()
+            {
+                return DisplayName;
+            }
+        }
+
+        public PackageItem SelectedPackage => lstResults.SelectedItem as PackageItem;
 
 
         public frmAddXboxApplication()
@@ -53,11 +64,19 @@ namespace nspector
             var packageManager = new PackageManager();
             var packages = packageManager.FindPackagesForUser("");
 
-            var filteredPackages = packages.Where(p => p.Id.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
+            var filteredPackages = packages.Where(p => p.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
 
             foreach (var package in filteredPackages)
-            {
-                lstResults.Items.Add(package.Id.FamilyName);
+            {            
+                // Create a tuple of (FamilyName, DisplayName)
+                var item = Tuple.Create(package.DisplayName, package.Id.FamilyName);
+
+                // Add tuple to ListBox
+                lstResults.Items.Add(new PackageItem
+                {
+                    DisplayName = package.DisplayName,
+                    FamilyName = package.Id.FamilyName
+                });
             }
         }
 
