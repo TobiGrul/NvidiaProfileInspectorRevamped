@@ -14,22 +14,8 @@ namespace nspector
         public frmAddXboxApplication()
         {
             InitializeComponent();
-            AcceptButton = tbSearch;
+            AcceptButton = btnOK;
             Shown += (s, e) => txtFilter.Focus();
-        }
-
-        private void tbSearch_Click(object sender, EventArgs e)
-        {
-            string filter = txtFilter.Text.Trim();
-            if (string.IsNullOrWhiteSpace(filter))
-            {
-                MessageBox.Show("Please enter a filter.");
-                return;
-            }
-
-            lstResults.Items.Clear();
-
-            ListAppxPackages(filter);
         }
 
         private void lstResults_DoubleClick(object sender, EventArgs e)
@@ -67,7 +53,7 @@ namespace nspector
             var packageManager = new PackageManager();
             var packages = packageManager.FindPackagesForUser("");
 
-            var filteredPackages = packages.Where(p => p.Id.Name.Contains(filter)).ToList();
+            var filteredPackages = packages.Where(p => p.Id.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)).ToList();
 
             foreach (var package in filteredPackages)
             {
@@ -75,5 +61,15 @@ namespace nspector
             }
         }
 
+        private void txtFilter_TextChanged(object sender, EventArgs e)
+        {
+            string filter = txtFilter.Text.Trim();
+
+            lstResults.Items.Clear();
+
+            ListAppxPackages(filter);
+            if (lstResults.Items.Count == 1)
+                lstResults.SelectedIndex = 0;
+        }
     }
 }

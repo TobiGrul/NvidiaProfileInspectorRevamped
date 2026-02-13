@@ -28,22 +28,11 @@
         /// </summary>
         private void InitializeComponent()
         {
-            tbSearch = new System.Windows.Forms.Button();
             btnCancel = new System.Windows.Forms.Button();
             btnOK = new System.Windows.Forms.Button();
             txtFilter = new System.Windows.Forms.TextBox();
             lstResults = new System.Windows.Forms.ListBox();
             SuspendLayout();
-            // 
-            // tbSearch
-            // 
-            tbSearch.Location = new System.Drawing.Point(118, 12);
-            tbSearch.Name = "tbSearch";
-            tbSearch.Size = new System.Drawing.Size(75, 23);
-            tbSearch.TabIndex = 1;
-            tbSearch.Text = "Search";
-            tbSearch.UseVisualStyleBackColor = true;
-            tbSearch.Click += tbSearch_Click;
             // 
             // btnCancel
             // 
@@ -72,6 +61,7 @@
             txtFilter.PlaceholderText = "Wildcard...";
             txtFilter.Size = new System.Drawing.Size(100, 23);
             txtFilter.TabIndex = 0;
+            txtFilter.TextChanged += txtFilter_TextChanged;
             // 
             // lstResults
             // 
@@ -91,7 +81,6 @@
             Controls.Add(txtFilter);
             Controls.Add(btnOK);
             Controls.Add(btnCancel);
-            Controls.Add(tbSearch);
             Name = "frmAddXboxApplication";
             Text = "frmAddXboxApplication";
             ResumeLayout(false);
@@ -99,8 +88,6 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.Button tbSearch;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.TextBox txtFilter;

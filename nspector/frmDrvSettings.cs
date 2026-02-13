@@ -974,7 +974,8 @@ namespace nspector
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 string applicationName = dialog.SelectedPackage;
-                AddApplication(applicationName);
+                if (applicationName != null && applicationName != string.Empty)
+                    AddApplication(applicationName);
             }
 
             RefreshCurrentProfile();
